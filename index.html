@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- basic metadata -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Part Builder</title>
+  <link href="./style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <div class="full offset grid" id="grid"></div>
+  <!--img src="moab-outline.png" width="230" height="150" style="position: absolute;" id="ref"-->
+  <main>
+    <script src="draggable.js"></script>
+    <script src="builder.js"></script>
+
+    <div style="max-width: 20em; text-align: center;" id="controls">
+      <h1>Part Builder</h1>
+      <fieldset style="font-size: 85%;">
+        <legend>Controls</legend>
+        <span>Click & drag: Move hovered part</span><br>
+        <span>Arrow Keys: Move hovered part 1 unit</span><br>
+        <span>Shift + Arrow Keys: Increase part size</span><br>
+        <span>CTRL + Arrow Keys: Decrease part size</span><br>
+        <span>Scroll: Turn part</span><br>
+        <span>Backspace: Delete part</span><br>
+        <span>D: Duplicate part</span><br>
+      </fieldset>
+      <fieldset>
+        <legend>Options</legend>
+        <label for="scale">Preview Scale</label><br>
+        <input type="range" min="1.4" max="20" id="scale" step="0.1" onchange="visualScale()"><br>
+      </fieldset>
+      <fieldset>
+        <legend>Tools</legend>
+        <button type="button" onclick="delAll()">Clear All</button><br>
+        <button type="button" onclick="toggleOriginInFront()">Toggle Origin Part On Top</button>
+      </fieldset>
+      <fieldset>
+        <legend>Serialisation</legend>
+        <label for="scale">Output Scale</label><br>
+        <input type="number" min="0" value="1" id="export-scale" onchange="updatePreviewBlimp()"><br>
+        <button type="button" onclick="exportMAWeapon()">Export as MA Weapon Parts Array</button>
+        <button type="button" onclick="exportMAWeaponJSON()">Export as MA Weapon Parts JSON</button>
+        <button type="button" onclick="exportP5Play()">Export as p5.play Sprites</button>
+      </fieldset>
+    </div>
+  </main>
+</body>
+
+</html>
