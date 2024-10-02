@@ -90,9 +90,6 @@ async function exportMAWeapon(){
 async function exportMAWeaponJSON(){
   copy(JSON.stringify(serialiseToMAWeapon(parts)))
 }
-async function exportP5Play(){
-  copy(serialiseToP5Play(parts))
-}
 
 function delAll(){
   for(let part of parts){
@@ -142,30 +139,6 @@ function serialiseToMAWeaponTXT(parts){
   }
   arr.push("]")
   return arr
-}
-
-function serialiseToP5Play(parts){
-  let init = 
-  `let colour = color("ffffff");
-  let collider = "static";
-  `
-  let exportScale = document.getElementById("export-scale").value
-  let arr = []
-  for(let part of parts){
-    arr.push(
-    `{
-      let sprite = new Sprite();
-      sprite.x = ${part.x * exportScale};
-      sprite.y = ${part.y * exportScale};
-      sprite.w = ${part.width * exportScale};
-      sprite.h = ${part.height * exportScale};
-      sprite.collider = collider;
-      sprite.colour = colour
-      sprite.rotation = ${part.rotation}
-    }`
-    )
-  }
-  return "{\n"+init+arr.join("\n")+"\n}"
 }
 
 function copy(item){
