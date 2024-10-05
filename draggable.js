@@ -65,6 +65,7 @@ class DraggableElement extends HTMLElement{
       duplicate.updateStyles()
       document.body.appendChild(duplicate)
       parts.push(duplicate)
+      updateInfo()
       duplicate.style.borderColor = "blue"
     }
     if(event.key === "Backspace" && this.deletable){
@@ -72,6 +73,7 @@ class DraggableElement extends HTMLElement{
       this.deletable = false
       parts.splice(parts.indexOf(this), 1)
       this.remove()
+      updateInfo()
       return;
     }
     if(event.key === "ArrowUp"){

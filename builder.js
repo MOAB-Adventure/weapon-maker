@@ -58,6 +58,7 @@ function makePart(x = 0, y = 0, width = 10, height = 10) {
   document.body.appendChild(elt)
   parts.push(elt)
   visualScale()
+  updateInfo()
 }
 
 function handleKeyboardShortcut(event){
@@ -95,6 +96,7 @@ function delAll(){
   for(let part of parts){
     part.remove()
   }
+  updateInfo()
 }
 function toggleOriginInFront(){
   if(originInFront){
@@ -144,4 +146,8 @@ function serialiseToMAWeaponTXT(parts){
 function copy(item){
   navigator.clipboard.writeText(item)
   alert("Copied!")
+}
+
+function updateInfo(){
+  document.getElementById("part-counter").textContent = ""+parts.filter(x => x.serialisable?x:undefined).length
 }
