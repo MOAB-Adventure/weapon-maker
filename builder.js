@@ -126,7 +126,7 @@ function serialiseToMAWeaponTXT(parts){
   let arr = ["["]
   let exportScale = document.getElementById("export-scale").value
   for(let part of parts){
-    arr.push(
+    if(part.serialisable) arr.push(
       `    {
       type: "part",
       x: ${part.x * exportScale},

@@ -5,8 +5,9 @@
   <!-- basic metadata -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Part Builder</title>
+  <title>MA Weapon Builder</title>
   <link href="./style.css" rel="stylesheet" type="text/css" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body>
@@ -42,8 +43,8 @@
         <legend>Serialisation</legend>
         <label for="scale">Output Scale</label><br>
         <input type="number" min="0" value="1" id="export-scale" onchange="updatePreviewBlimp()"><br>
-        <button type="button" onclick="exportMAWeapon()">Export as MA Weapon Parts Array</button>
-        <button type="button" onclick="exportMAWeaponJSON()">Export as MA Weapon Parts JSON</button>
+        <button type="button" onclick="exportMAWeapon()">Export as Array</button>
+        <button type="button" onclick="exportMAWeaponJSON()">Export as JSON</button>
       </fieldset>
     </div>
   </main>

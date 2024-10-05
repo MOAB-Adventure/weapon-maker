@@ -11,6 +11,7 @@ class DraggableElement extends HTMLElement{
   deletable = true
   rotatable = true
   posCorrection = 0
+  serialisable = true
   onmove = () => {}
   description = "Generic Part"
   anchor = {
