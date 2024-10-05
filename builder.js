@@ -96,6 +96,7 @@ function delAll(){
   for(let part of parts){
     part.remove()
   }
+  parts.splice(0)
   updateInfo()
 }
 function toggleOriginInFront(){
