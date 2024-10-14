@@ -37,11 +37,15 @@
       <fieldset>
         <legend>Tools</legend>
         <button type="button" onclick="delAll()">Clear All</button><br>
-        <button type="button" onclick="toggleOriginInFront()">Toggle Origin Part On Top</button>
+        <button type="button" onclick="toggleOriginInFront()">Toggle Origin Part On Top</button><br>
+        <label for="import-scale">Input Scale</label><br>
+        <input type="number" min="0" value="1" id="import-scale"><br>
+        <label for="json-input">Import from JSON</label><br>
+        <input type="text" placeholder="Enter JSON here..." id="json-input"><button type="button" onclick="importJSON()">Import</button><br>
       </fieldset>
       <fieldset>
         <legend>Serialisation</legend>
-        <label for="scale">Output Scale</label><br>
+        <label for="export-scale">Output Scale</label><br>
         <input type="number" min="0" value="1" id="export-scale" onchange="updatePreviewBlimp()"><br>
         <button type="button" onclick="exportMAWeapon()">Export as Array</button>
         <button type="button" onclick="exportMAWeaponJSON()">Export as JSON</button>

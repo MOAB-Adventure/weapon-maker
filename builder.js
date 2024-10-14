@@ -1,136 +1,139 @@
-let originInFront = false
-const parts = []
-let scale = 8
+let originInFront = false;
+const parts = [];
+let scale = 8;
 
-
-let anchor = document.createElement("draggable-part")
-anchor.style.borderRadius = "100%"
-anchor.width = 10
-anchor.height = 10
-anchor.x = Math.round(visualViewport.width/20)
-anchor.y = Math.round(visualViewport.height/20)
-anchor.description = "Origin"
-anchor.resizable = false
-anchor.deletable = false
-anchor.rotatable = false
-anchor.posCorrection = 0
-anchor.coordinateScale = 8
-anchor.updateStyles()
+let anchor = document.createElement("draggable-part");
+anchor.style.borderRadius = "100%";
+anchor.width = 10;
+anchor.height = 10;
+anchor.x = Math.round(visualViewport.width / 20);
+anchor.y = Math.round(visualViewport.height / 20);
+anchor.description = "Origin";
+anchor.resizable = false;
+anchor.deletable = false;
+anchor.rotatable = false;
+anchor.posCorrection = 0;
+anchor.coordinateScale = 8;
+anchor.updateStyles();
 anchor.onmove = (event) => {
-  if(!event.shiftKey) for(let part of parts){
-    part.updateStyles(event)
-  }
-  grid.style.top = anchor.style.top
-  grid.style.left = anchor.style.left
-  anchor.style.textAlign = "center"
-}
-document.body.appendChild(anchor)
+  if (!event.shiftKey)
+    for (let part of parts) {
+      part.updateStyles(event);
+    }
+  grid.style.top = anchor.style.top;
+  grid.style.left = anchor.style.left;
+  anchor.style.textAlign = "center";
+};
+document.body.appendChild(anchor);
 
-let blomp = document.createElement("draggable-part")
-blomp.anchor = anchor
-blomp.description = "Reference Image"
-blomp.style.zIndex = "-1"
-blomp.id = "ref"
-blomp.width = 230
-blomp.height = 150
-blomp.serialisable = false
-blomp.coordinateScale = scale
-document.body.appendChild(blomp)
-blomp.style.pointerEvents = "none"
-parts.push(blomp)
+let blomp = document.createElement("draggable-part");
+blomp.anchor = anchor;
+blomp.description = "Reference Image";
+blomp.style.zIndex = "-1";
+blomp.id = "ref";
+blomp.width = 230;
+blomp.height = 150;
+blomp.serialisable = false;
+blomp.coordinateScale = scale;
+blomp.deletable = false;
+document.body.appendChild(blomp);
+blomp.style.pointerEvents = "none";
+parts.push(blomp);
 
-function updatePreviewBlimp(){
-  let input = document.getElementById("export-scale")
-  blomp.width = 230 / input.value
-  blomp.height = 150 / input.value
-  blomp.updateStyles()
+function updatePreviewBlimp() {
+  let input = document.getElementById("export-scale");
+  blomp.width = 230 / input.value;
+  blomp.height = 150 / input.value;
+  blomp.updateStyles();
 }
 
 function makePart(x = 0, y = 0, width = 10, height = 10) {
-  let elt = document.createElement("draggable-part")
-  elt.x = x
-  elt.y = y
-  elt.width = width
-  elt.height = height
-  elt.anchor = anchor
-  elt.serialisable = true
-  elt.coordinateScale = scale
-  document.body.appendChild(elt)
-  parts.push(elt)
-  visualScale()
-  updateInfo()
+  let elt = document.createElement("draggable-part");
+  elt.x = x;
+  elt.y = y;
+  elt.width = width;
+  elt.height = height;
+  elt.anchor = anchor;
+  elt.serialisable = true;
+  elt.coordinateScale = scale;
+  document.body.appendChild(elt);
+  parts.push(elt);
+  visualScale();
+  updateInfo();
+  return elt;
 }
 
-function handleKeyboardShortcut(event){
-  if(event.key === " "){
-    makePart()
+function handleKeyboardShortcut(event) {
+  if (event.key === " ") {
+    makePart();
   }
 }
-document.addEventListener("keydown", handleKeyboardShortcut)
+document.addEventListener("keydown", handleKeyboardShortcut);
 
-function visualScale(){
-  let scale = document.getElementById("scale").value
-  anchor.x = Math.round(visualViewport.width/(scale*2))
-  anchor.y = Math.round(visualViewport.height/(scale*2))
-  anchor.coordinateScale = scale
-  anchor.handleMovement({x: anchor.x * scale, y: anchor.y * scale})
-  anchor.updateStyles()
-  for(let part of parts){
-    part.coordinateScale = scale
-    part.handleMovement({x: part.x * scale, y: part.y * scale})
-    part.updateStyles()
+function visualScale() {
+  let scale = document.getElementById("scale").value;
+  anchor.x = Math.round(visualViewport.width / (scale * 2));
+  anchor.y = Math.round(visualViewport.height / (scale * 2));
+  anchor.coordinateScale = scale;
+  anchor.handleMovement({ x: anchor.x * scale, y: anchor.y * scale });
+  anchor.updateStyles();
+  for (let part of parts) {
+    part.coordinateScale = scale;
+    part.handleMovement({ x: part.x * scale, y: part.y * scale });
+    part.updateStyles();
   }
-  grid.style.scale = scale / 8
-  grid.style.top = anchor.style.top
-  grid.style.left = anchor.style.left
-}
-
-async function exportMAWeapon(){
-  copy(serialiseToMAWeaponTXT(parts).join("\n"))
-}
-async function exportMAWeaponJSON(){
-  copy(JSON.stringify(serialiseToMAWeapon(parts)))
+  grid.style.scale = scale / 8;
+  grid.style.top = anchor.style.top;
+  grid.style.left = anchor.style.left;
 }
 
-function delAll(){
-  for(let part of parts){
-    part.remove()
-  }
-  parts.splice(0)
-  updateInfo()
+async function exportMAWeapon() {
+  copy(serialiseToMAWeaponTXT(parts).join("\n"));
 }
-function toggleOriginInFront(){
-  if(originInFront){
-    anchor.style.zIndex = "auto"
-  }
-  else{
-    anchor.style.zIndex = "99"
-  }
-  originInFront = !originInFront
+async function exportMAWeaponJSON() {
+  copy(JSON.stringify(serialiseToMAWeapon(parts)));
 }
 
-function serialiseToMAWeapon(parts){
-  let arr = []
-  let exportScale = document.getElementById("export-scale").value
-  for(let part of parts){
-    if(part.serialisable) arr.push({
-      type: "part",
-      x: part.x * exportScale,
-      y: part.y * exportScale,
-      width: part.width * exportScale,
-      height: part.height * exportScale,
-      rotation: part.rotation,
-      image: false
-    })
+function delAll() {
+  for (let part of parts) {
+    if (part.deletable) part.remove();
   }
-  return arr
+  parts.splice(1);
+  updateInfo();
 }
-function serialiseToMAWeaponTXT(parts){
-  let arr = ["["]
-  let exportScale = document.getElementById("export-scale").value
-  for(let part of parts){
-    if(part.serialisable) arr.push(
-      `    {
+function toggleOriginInFront() {
+  if (originInFront) {
+    anchor.style.zIndex = "auto";
+  } else {
+    anchor.style.zIndex = "99";
+  }
+  originInFront = !originInFront;
+}
+
+function serialiseToMAWeapon(parts) {
+  let arr = [];
+  let exportScale = document.getElementById("export-scale").value;
+  for (let part of parts) {
+    if (part.serialisable)
+      arr.push({
+        type: "part",
+        x: part.x * exportScale,
+        y: part.y * exportScale,
+        width: part.width * exportScale,
+        height: part.height * exportScale,
+        rotation: part.rotation,
+        image: false,
+      });
+  }
+  return arr;
+}
+function serialiseToMAWeaponTXT(parts) {
+  let arr = ["["];
+  let exportScale = document.getElementById("export-scale").value;
+  for (let part of parts) {
+    if (part.serialisable)
+      arr.push(
+        `    {
       type: "part",
       x: ${part.x * exportScale},
       y: ${part.y * exportScale},
@@ -138,17 +141,38 @@ function serialiseToMAWeaponTXT(parts){
       height: ${part.height * exportScale},
       rotation: ${part.rotation},
       image: false
-    },`)
+    },`
+      );
   }
-  arr.push("]")
-  return arr
+  arr.push("]");
+  return arr;
+}
+function importJSON() {
+  let json = document.getElementById("json-input").value;
+  let scl = document.getElementById("import-scale").value;
+  let obj = JSON.parse(json);
+  delAll();
+  if (!obj instanceof Array) return;
+  for (let part of obj) {
+    console.log("creating", part);
+    let created = makePart(
+      part.x / scl,
+      part.y / scl,
+      part.width / scl,
+      part.height / scl
+    );
+    created.rotation = part.rotation;
+    created.updateStyles();
+  }
+  console.log(obj);
 }
 
-function copy(item){
-  navigator.clipboard.writeText(item)
-  alert("Copied!")
+function copy(item) {
+  navigator.clipboard.writeText(item);
+  alert("Copied!");
 }
 
-function updateInfo(){
-  document.getElementById("part-counter").textContent = ""+parts.filter(x => x.serialisable?x:undefined).length
+function updateInfo() {
+  document.getElementById("part-counter").textContent =
+    "" + parts.filter((x) => (x.serialisable ? x : undefined)).length;
 }
