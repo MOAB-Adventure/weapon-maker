@@ -28,6 +28,10 @@ draggable-part{
   filter: brightness(2);
   border: 2px solid black
 }
+draggable-part[locked=true]{
+  background-image: linear-gradient(rgba(255, 0, 0, 0.1),rgba(255, 0, 0, 0.1)), url(https://cdn.jsdelivr.net/gh/LightningLaser8/MOAB-Adventure@main/assets/textures/ui/background.png); 
+  filter: brightness(2);
+}
 draggable-part:hover::after{
   background-color: rgba(0, 0, 0, .75);
   position: absolute;
@@ -41,6 +45,11 @@ draggable-part:hover::after{
   color: rgb(206, 255, 255);
   font-size: 0.9em;
   filter: brightness(0.5);
+}
+draggable-part[locked=true]:hover::after{
+  border: 1px solid red;
+  color: rgb(255, 206, 206);
+  content: " " attr(desc) " [Locked]";
 }
 #ref{
   background-image: url(moab-outline.png);

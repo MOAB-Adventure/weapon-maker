@@ -2,17 +2,23 @@ const grid = document.getElementById("grid");
 class DraggableElement extends HTMLElement {
   x = 0;
   y = 0;
+  px = 0;
+  py = 0;
+  slide = 0;
   rotation = 0;
   width = 20;
   height = 20;
   dragging = false;
+  sliding = false;
+  draggable = true;
   selected = false;
   resizable = true;
   deletable = true;
   rotatable = true;
+  locked = false;
   posCorrection = 0;
   serialisable = true;
-  onmove = () => {};
+  onmove = () => { };
   description = "Generic Part";
   anchor = {
     x: 0,
@@ -39,7 +45,7 @@ class DraggableElement extends HTMLElement {
     );
     document.addEventListener("keydown", (event) => this.handleKeyPress(event));
 
-    this.style.cursor = "grab";
+    this.resetCursor()
     this.style.display = "inline-block";
     this.style.position = "absolute";
     this.style.borderWidth = "1px";
@@ -48,13 +54,14 @@ class DraggableElement extends HTMLElement {
     this.onmove(new KeyboardEvent("a"));
   }
   handleScroll(event) {
-    if (this.rotatable) {
+    if (this.rotatable && !this.locked) {
       this.rotation += Math.round(event.deltaY / 100);
       this.updateStyles();
     }
   }
   handleKeyPress(event) {
     if (!this.selected) return;
+    if (this.locked) return;
     if (event.key === "d" && this.deletable) {
       const duplicate = document.createElement("draggable-part");
       duplicate.x = this.x;
@@ -133,25 +140,89 @@ class DraggableElement extends HTMLElement {
     this.updateStyles();
     this.onmove(event);
   }
+  confirmSlide(){
+    this.px = this.x
+    this.py = this.y
+    this.sliding = false
+    if(this.ghost) this.killGhost()
+  }
+  createGhost(){
+    this.ghost = document.createElement("draggable-part")
+    this.ghost.style.pointerEvents = "none"
+    document.body.appendChild(this.ghost)
+    this.ghost.updateStyles()
+  }
+  updateGhost(){
+    this.ghost.x = this.x
+    this.ghost.y = this.y
+    this.ghost.rotation = this.rotation
+    this.ghost.updateStyles()
+  }
+  killGhost(){
+    this.ghost.remove()
+    delete this.ghost
+  }
   handleMovement(event) {
-    if (!this.dragging) return;
+    if (!this.dragging || this.locked) return;
+    if (event.shiftKey) {
+      this.sliding = true
+      //if(!this.ghost) this.createGhost()
+      //this.updateGhost()
+      let nx = (event.x -
+        this.anchor.x * this.anchor.coordinateScale -
+        this.posCorrection * this.coordinateScale) /
+        this.coordinateScale
+      let ny = (event.y -
+        this.anchor.y * this.anchor.coordinateScale -
+        this.posCorrection * this.coordinateScale) /
+        this.coordinateScale
+      let dx = nx - this.px
+      let dy = ny - this.py
+      let angle = Math.atan2(dy, dx)
+      let deg = Math.round(degrees(angle))
+      this.slide = Math.round(Math.sqrt(dx**2 + dy**2));
+      if(this.rotatable && !isNaN(+deg)) this.rotation = deg
+      this.updateStyles()
+      return;
+    }
     this.x = Math.round(
       (event.x -
         this.anchor.x * this.anchor.coordinateScale -
         this.posCorrection * this.coordinateScale) /
-        this.coordinateScale
+      this.coordinateScale
     );
     this.y = Math.round(
       (event.y -
         this.anchor.y * this.anchor.coordinateScale -
         this.posCorrection * this.coordinateScale) /
-        this.coordinateScale
+      this.coordinateScale
     );
     this.updateStyles();
     this.onmove(event);
   }
+  resetCursor() {
+    if (this.locked) {
+      this.style.cursor = "not-allowed";
+    }
+    else this.style.cursor = "grab"
+  }
+  focusSelection(){
+    if(parts){
+      for(let p of parts){
+        if(p !== this) p.handleDefiniteDragEnd()
+      }
+    }
+  }
   handlePossibleDragStart(event) {
-    this.handleDefiniteDragStart(event);
+    if (event.ctrlKey) {
+      this.locked = !this.locked;
+      this.setAttribute("locked", this.locked)
+      this.resetCursor();
+      this.style.borderColor = "black"
+      this.updateStyles();
+    }
+    if (this.draggable && !this.locked) this.handleDefiniteDragStart(event);
+    this.focusSelection()
   }
   handleDefiniteDragStart(event) {
     this.dragging = true;
@@ -160,13 +231,14 @@ class DraggableElement extends HTMLElement {
   }
   handleDefiniteDragEnd(event) {
     this.dragging = false;
-    this.style.cursor = "grab";
+    this.confirmSlide()
+    this.resetCursor()
     this.updateStyles();
   }
   handleDeselect(event) {
     if (!this.dragging) {
       this.selected = false;
-      this.style.cursor = "grab";
+      this.resetCursor()
       this.updateStyles();
     }
   }
@@ -174,37 +246,39 @@ class DraggableElement extends HTMLElement {
     this.selected = true;
     this.updateStyles();
   }
+  get borderColour() {
+    return this.locked ? "red" : "cyan";
+  }
   updateStyles() {
     if (this.style.borderLeftColor === "black")
-      this.style.borderLeftColor = "cyan";
+      this.style.borderLeftColor = this.borderColour;
     if (this.style.borderRightColor === "black")
-      this.style.borderRightColor = "cyan";
+      this.style.borderRightColor = this.borderColour;
     if (this.style.borderTopColor === "black")
-      this.style.borderTopColor = "cyan";
+      this.style.borderTopColor = this.borderColour;
     if (this.style.borderBottomColor === "black")
-      this.style.borderBottomColor = "cyan";
+      this.style.borderBottomColor = this.borderColour;
     // this.style.backgroundColor = this.selected?"#dfdfdf":"#ffffff"
     this.style.width = this.width * this.coordinateScale + "px";
     this.style.height = this.height * this.coordinateScale + "px";
-    this.style.left =
-      (this.x - this.width / 2 + this.anchor.x + this.posCorrection) *
-        this.coordinateScale +
-      "px";
-    this.style.top =
-      (this.y - this.height / 2 + this.anchor.y + this.posCorrection) *
-        this.coordinateScale +
-      "px";
+    let absX = (this.x - this.width / 2 + this.anchor.x + this.posCorrection) * this.coordinateScale
+    let absY = (this.y - this.height / 2 + this.anchor.y + this.posCorrection) * this.coordinateScale
+    let relX = (this.dragging&&!this.sliding)?0:(this.slide * Math.cos(radians(this.rotation)) * this.coordinateScale)
+    let relY = (this.dragging&&!this.sliding)?0:(this.slide * Math.sin(radians(this.rotation)) * this.coordinateScale)
+    this.style.left = (absX + relX) + "px";
+    this.style.top = (absY + relY) + "px"
     this.style.rotate = this.rotation + "deg";
     this.setAttribute(
       "desc",
       this.description +
-        (this.resizable ? "\n(" + this.width + "x" + this.height + ")" : "") +
-        "\n[X:" +
-        this.x +
-        ",Y:" +
-        this.y +
-        "]" +
-        (this.rotatable ? "\nRotation: " + this.rotation : "")
+      (this.resizable ? "\n(" + this.width + "x" + this.height + ")" : "") +
+      "\n[X:" +
+      this.x +
+      ",Y:" +
+      this.y +
+      "]" +
+      (this.rotatable ? "\nRotation: " + this.rotation : "") + 
+      (this.slide ? "\nSlide:"+this.slide : "")
     );
     this.setAttribute("rot", this.rotation);
     if (!this.selected) this.style.borderColor = "black";
@@ -212,3 +286,10 @@ class DraggableElement extends HTMLElement {
 }
 
 customElements.define("draggable-part", DraggableElement);
+
+function radians(deg){
+  return deg / 180 * Math.PI
+}
+function degrees(rad){
+  return rad / Math.PI * 180
+}
