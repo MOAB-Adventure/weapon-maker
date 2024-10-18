@@ -32,6 +32,14 @@ draggable-part[locked=true]{
   background-image: linear-gradient(rgba(255, 0, 0, 0.1),rgba(255, 0, 0, 0.1)), url(https://cdn.jsdelivr.net/gh/LightningLaser8/MOAB-Adventure@main/assets/textures/ui/background.png); 
   filter: brightness(2);
 }
+draggable-part[ghost=true]{
+  background-image: none;
+  background-color: rgba(206, 255, 255, .5);
+}
+draggable-part[ghost=true][locked=true]{
+  background-image: none;
+  background-color: rgba(255, 206, 206, .5);
+}
 draggable-part:hover::after{
   background-color: rgba(0, 0, 0, .75);
   position: absolute;

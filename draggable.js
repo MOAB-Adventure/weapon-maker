@@ -59,19 +59,23 @@ class DraggableElement extends HTMLElement {
       this.updateStyles();
     }
   }
+  createDuplicate(){
+    const duplicate = document.createElement("draggable-part");
+    duplicate.x = this.x;
+    duplicate.y = this.y;
+    duplicate.width = this.width;
+    duplicate.height = this.height;
+    duplicate.rotation = this.rotation;
+    duplicate.coordinateScale = this.coordinateScale;
+    duplicate.anchor = this.anchor;
+    duplicate.updateStyles();
+    return duplicate
+  }
   handleKeyPress(event) {
     if (!this.selected) return;
     if (this.locked) return;
     if (event.key === "d" && this.deletable) {
-      const duplicate = document.createElement("draggable-part");
-      duplicate.x = this.x;
-      duplicate.y = this.y;
-      duplicate.width = this.width;
-      duplicate.height = this.height;
-      duplicate.rotation = this.rotation;
-      duplicate.coordinateScale = this.coordinateScale;
-      duplicate.anchor = this.anchor;
-      duplicate.updateStyles();
+      const duplicate = this.createDuplicate()
       document.body.appendChild(duplicate);
       parts.push(duplicate);
       updateInfo();
@@ -147,10 +151,13 @@ class DraggableElement extends HTMLElement {
     if(this.ghost) this.killGhost()
   }
   createGhost(){
-    this.ghost = document.createElement("draggable-part")
-    this.ghost.style.pointerEvents = "none"
+    this.ghost = this.createDuplicate()
+    this.ghost.description = "Ghost"
+    this.ghost.serialisable = false
+    this.ghost.locked = true
     document.body.appendChild(this.ghost)
     this.ghost.updateStyles()
+    this.ghost.setAttribute("ghost", true)
   }
   updateGhost(){
     this.ghost.x = this.x
@@ -166,8 +173,8 @@ class DraggableElement extends HTMLElement {
     if (!this.dragging || this.locked) return;
     if (event.shiftKey) {
       this.sliding = true
-      //if(!this.ghost) this.createGhost()
-      //this.updateGhost()
+      if(!this.ghost) this.createGhost()
+      this.updateGhost()
       let nx = (event.x -
         this.anchor.x * this.anchor.coordinateScale -
         this.posCorrection * this.coordinateScale) /
@@ -184,6 +191,10 @@ class DraggableElement extends HTMLElement {
       if(this.rotatable && !isNaN(+deg)) this.rotation = deg
       this.updateStyles()
       return;
+    }
+    if(this.slide){
+      if(!this.ghost) this.createGhost()
+      this.updateGhost()
     }
     this.x = Math.round(
       (event.x -
@@ -263,8 +274,8 @@ class DraggableElement extends HTMLElement {
     this.style.height = this.height * this.coordinateScale + "px";
     let absX = (this.x - this.width / 2 + this.anchor.x + this.posCorrection) * this.coordinateScale
     let absY = (this.y - this.height / 2 + this.anchor.y + this.posCorrection) * this.coordinateScale
-    let relX = (this.dragging&&!this.sliding)?0:(this.slide * Math.cos(radians(this.rotation)) * this.coordinateScale)
-    let relY = (this.dragging&&!this.sliding)?0:(this.slide * Math.sin(radians(this.rotation)) * this.coordinateScale)
+    let relX = (this.slide * Math.cos(radians(this.rotation)) * this.coordinateScale)
+    let relY = (this.slide * Math.sin(radians(this.rotation)) * this.coordinateScale)
     this.style.left = (absX + relX) + "px";
     this.style.top = (absY + relY) + "px"
     this.style.rotate = this.rotation + "deg";

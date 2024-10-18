@@ -122,6 +122,7 @@ function serialiseToMAWeapon(parts) {
         width: part.width * exportScale,
         height: part.height * exportScale,
         rotation: part.rotation,
+        slide: part.slide * exportScale,
         image: false,
       });
   }
@@ -140,6 +141,7 @@ function serialiseToMAWeaponTXT(parts) {
       width: ${part.width * exportScale},
       height: ${part.height * exportScale},
       rotation: ${part.rotation},
+      slide: ${part.slide * exportScale},
       image: false
     },`
       );
