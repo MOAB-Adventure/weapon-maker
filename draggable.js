@@ -66,6 +66,7 @@ class DraggableElement extends HTMLElement {
     duplicate.width = this.width;
     duplicate.height = this.height;
     duplicate.rotation = this.rotation;
+    duplicate.slide = this.slide;
     duplicate.coordinateScale = this.coordinateScale;
     duplicate.anchor = this.anchor;
     duplicate.updateStyles();
@@ -152,6 +153,7 @@ class DraggableElement extends HTMLElement {
   }
   createGhost(){
     this.ghost = this.createDuplicate()
+    this.ghost.slide = 0;
     this.ghost.description = "Ghost"
     this.ghost.serialisable = false
     this.ghost.locked = true

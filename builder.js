@@ -29,7 +29,7 @@ document.body.appendChild(anchor);
 let blomp = document.createElement("draggable-part");
 blomp.anchor = anchor;
 blomp.description = "Reference Image";
-blomp.style.zIndex = "-1";
+blomp.style.zIndex = "-10";
 blomp.id = "ref";
 blomp.width = 230;
 blomp.height = 150;
@@ -156,7 +156,6 @@ function importJSON() {
   delAll();
   if (!obj instanceof Array) return;
   for (let part of obj) {
-    console.log("creating", part);
     let created = makePart(
       part.x / scl,
       part.y / scl,
@@ -164,6 +163,7 @@ function importJSON() {
       part.height / scl
     );
     created.rotation = part.rotation;
+    created.slide = part.slide / scl;
     created.updateStyles();
   }
   console.log(obj);
