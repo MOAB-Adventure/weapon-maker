@@ -1,13 +1,8 @@
 ::selection{
-  background-color: inherit;
+  /*background-color: inherit;*/
 }
 *{
   font-family: "Consolas", monospace;
-}
-main{
-  width: fit-content;
-  z-index: 1;
-  position: fixed;
 }
 html, body{
   overflow: hidden;
@@ -32,9 +27,6 @@ draggable-part{
   background-image: url(https://cdn.jsdelivr.net/gh/LightningLaser8/MOAB-Adventure@main/assets/textures/ui/background.png); 
   filter: brightness(2);
   border: 2px solid black;
-  position: absolute;
-  z-index: 0;
-  transform-style: preserve-3d;
 }
 draggable-part[locked=true]{
   background-image: linear-gradient(rgba(255, 0, 0, 0.1),rgba(255, 0, 0, 0.1)), url(https://cdn.jsdelivr.net/gh/LightningLaser8/MOAB-Adventure@main/assets/textures/ui/background.png); 
@@ -48,22 +40,42 @@ draggable-part[ghost=true][locked=true]{
   background-image: none;
   background-color: rgba(255, 206, 206, .5);
 }
-draggable-part:hover::after{
+#outline{
+  z-index: 2;
+  position: absolute;
+  pointer-events: none;
+  border: 3px double blueviolet;
+  translate: -1.5px -1.5px;
+}
+#tooltip{
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
   background-color: rgba(0, 0, 0, .75);
   position: absolute;
-  display: inline-block;
-  width: 100%;
+  pointer-events: none;
   min-width: fit-content;
+  min-height: fit-content;
   z-index: 99;
-  margin-left: -50%;
-  border: 1px solid cyan;
+  border: 1px solid rgba(0, 0, 0, .04);
   border-radius: 4px;
-  content: " " attr(desc);
   color: rgb(206, 255, 255);
   font-size: 0.9em;
-  filter: brightness(0.5);
+  display: flex;
 }
-draggable-part[locked=true]:hover::after{
+*[off]{
+  opacity: 0;
+}
+#tooltip *{
+  position: static;
+  text-align: center;
+  display: block;
+  flex-grow: 1;
+}
+#tooltip[circle=true], #outline[circle=true]{
+  border-radius: 100%;
+}
+#tooltip[locked=true]{
   border: 1px solid red;
   color: rgb(255, 206, 206);
   content: " " attr(desc) " [Locked]";

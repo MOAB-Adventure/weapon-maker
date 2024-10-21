@@ -15,6 +15,8 @@ anchor.rotatable = false;
 anchor.posCorrection = 0;
 anchor.coordinateScale = 8;
 anchor.updateStyles();
+anchor.circle = true;
+anchor.hidePos = true;
 anchor.onmove = (event) => {
   if (!event.shiftKey)
     for (let part of parts) {
@@ -36,6 +38,7 @@ blomp.height = 150;
 blomp.serialisable = false;
 blomp.coordinateScale = scale;
 blomp.deletable = false;
+blomp.movable = false;
 document.body.appendChild(blomp);
 blomp.style.pointerEvents = "none";
 parts.push(blomp);
@@ -177,4 +180,22 @@ function copy(item) {
 function updateInfo() {
   document.getElementById("part-counter").textContent =
     "" + parts.filter((x) => (x.serialisable ? x : undefined)).length;
+}
+
+function toggleTooltip(){
+  if(!document.getElementById("show-tt").checked){
+    tooltip.setAttribute("off", "")
+  }
+  else{
+    tooltip.removeAttribute("off")
+  }
+}
+
+function toggleOutline(){
+  if(!document.getElementById("show-ln").checked){
+    outline.setAttribute("off", "")
+  }
+  else{
+    outline.removeAttribute("off")
+  }
 }

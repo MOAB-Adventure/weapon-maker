@@ -1,4 +1,12 @@
 const grid = document.getElementById("grid");
+/** @type {HTMLDivElement} */
+let tooltip, outline
+document.addEventListener("DOMContentLoaded", () => {
+  tooltip = document.getElementById("tooltip");
+})
+document.addEventListener("DOMContentLoaded", () => {
+  outline = document.getElementById("outline");
+})
 class DraggableElement extends HTMLElement {
   x = 0;
   y = 0;
@@ -15,9 +23,12 @@ class DraggableElement extends HTMLElement {
   resizable = true;
   deletable = true;
   rotatable = true;
+  movable = true;
   locked = false;
   posCorrection = 0;
   serialisable = true;
+  circle = false;
+  hidePos = false;
   onmove = () => { };
   description = "Generic Part";
   anchor = {
@@ -90,56 +101,58 @@ class DraggableElement extends HTMLElement {
       updateInfo();
       return;
     }
-    if (event.key === "ArrowUp") {
-      if (this.resizable && event.shiftKey) {
-        this.height += 1;
-        this.y -= 0.5;
-        this.style.borderTopColor = "lime";
-      } else if (this.resizable && event.ctrlKey) {
-        this.height -= 1;
-        this.y += 0.5;
-        this.style.borderTopColor = "red";
-      } else {
-        this.y -= 1;
+    if(this.movable){
+      if (event.key === "ArrowUp") {
+        if (this.resizable && event.shiftKey) {
+          this.height += 1;
+          this.y -= 0.5;
+          this.style.borderTopColor = "lime";
+        } else if (this.resizable && event.ctrlKey) {
+          this.height -= 1;
+          this.y += 0.5;
+          this.style.borderTopColor = "red";
+        } else {
+          this.y -= 1;
+        }
       }
-    }
-    if (event.key === "ArrowDown") {
-      if (this.resizable && event.shiftKey) {
-        this.height += 1;
-        this.y += 0.5;
-        this.style.borderBottomColor = "lime";
-      } else if (this.resizable && event.ctrlKey) {
-        this.height -= 1;
-        this.y -= 0.5;
-        this.style.borderBottomColor = "red";
-      } else {
-        this.y += 1;
+      if (event.key === "ArrowDown") {
+        if (this.resizable && event.shiftKey) {
+          this.height += 1;
+          this.y += 0.5;
+          this.style.borderBottomColor = "lime";
+        } else if (this.resizable && event.ctrlKey) {
+          this.height -= 1;
+          this.y -= 0.5;
+          this.style.borderBottomColor = "red";
+        } else {
+          this.y += 1;
+        }
       }
-    }
-    if (event.key === "ArrowRight") {
-      if (this.resizable && event.shiftKey) {
-        this.width += 1;
-        this.x += 0.5;
-        this.style.borderRightColor = "lime";
-      } else if (this.resizable && event.ctrlKey) {
-        this.width -= 1;
-        this.x -= 0.5;
-        this.style.borderRightColor = "red";
-      } else {
-        this.x += 1;
+      if (event.key === "ArrowRight") {
+        if (this.resizable && event.shiftKey) {
+          this.width += 1;
+          this.x += 0.5;
+          this.style.borderRightColor = "lime";
+        } else if (this.resizable && event.ctrlKey) {
+          this.width -= 1;
+          this.x -= 0.5;
+          this.style.borderRightColor = "red";
+        } else {
+          this.x += 1;
+        }
       }
-    }
-    if (event.key === "ArrowLeft") {
-      if (this.resizable && event.shiftKey) {
-        this.width += 1;
-        this.x -= 0.5;
-        this.style.borderLeftColor = "lime";
-      } else if (this.resizable && event.ctrlKey) {
-        this.width -= 1;
-        this.x += 0.5;
-        this.style.borderLeftColor = "red";
-      } else {
-        this.x -= 1;
+      if (event.key === "ArrowLeft") {
+        if (this.resizable && event.shiftKey) {
+          this.width += 1;
+          this.x -= 0.5;
+          this.style.borderLeftColor = "lime";
+        } else if (this.resizable && event.ctrlKey) {
+          this.width -= 1;
+          this.x += 0.5;
+          this.style.borderLeftColor = "red";
+        } else {
+          this.x -= 1;
+        }
       }
     }
     this.updateStyles();
@@ -172,7 +185,7 @@ class DraggableElement extends HTMLElement {
     delete this.ghost
   }
   handleMovement(event) {
-    if (!this.dragging || this.locked) return;
+    if (!this.dragging || this.locked || !this.movable) return;
     if (event.shiftKey) {
       this.sliding = true
       if(!this.ghost) this.createGhost()
@@ -251,6 +264,8 @@ class DraggableElement extends HTMLElement {
   handleDeselect(event) {
     if (!this.dragging) {
       this.selected = false;
+      tooltip.style.visibility = "hidden";
+      outline.style.visibility = "hidden";
       this.resetCursor()
       this.updateStyles();
     }
@@ -281,20 +296,39 @@ class DraggableElement extends HTMLElement {
     this.style.left = (absX + relX) + "px";
     this.style.top = (absY + relY) + "px"
     this.style.rotate = this.rotation + "deg";
-    this.setAttribute(
-      "desc",
+    this.tooltip = 
       this.description +
       (this.resizable ? "\n(" + this.width + "x" + this.height + ")" : "") +
-      "\n[X:" +
+      (this.movable && !this.hidePos?"\n[X:" +
       this.x +
       ",Y:" +
       this.y +
-      "]" +
-      (this.rotatable ? "\nRotation: " + this.rotation : "") + 
-      (this.slide ? "\nSlide:"+this.slide : "")
-    );
+      "]":"") +
+      (this.rotatable ? "\nRotation:" + this.rotation : "") + 
+      (this.slide ? "\nSlide:"+this.slide : "") + (this.locked?"\n[Locked]":"")
     this.setAttribute("rot", this.rotation);
     if (!this.selected) this.style.borderColor = "black";
+    if(this.selected){
+      if(tooltip?.style){
+        tooltip.firstElementChild.innerText = this.tooltip
+        tooltip.style.visibility = "visible";
+        tooltip.style.left = this.style.left
+        tooltip.style.top = this.style.top
+        tooltip.style.width = this.style.width
+        tooltip.style.height = this.style.height
+        tooltip.setAttribute("circle", this.circle)
+        tooltip.setAttribute("locked", this.locked)
+      }
+      if(outline?.style){
+        outline.style.visibility = "visible";
+        outline.style.left = this.style.left
+        outline.style.top = this.style.top
+        outline.style.width = this.style.width
+        outline.style.height = this.style.height
+        outline.style.rotate = this.rotation + "deg";
+        outline.setAttribute("circle", this.circle)
+      }
+    }
   }
 }
 

@@ -12,6 +12,10 @@
 
 <body>
   <div class="full offset grid" id="grid"></div>
+  <div id="tooltip">
+    <div></div>
+  </div>
+  <div id="outline" off></div>
   <!--img src="moab-outline.png" width="230" height="150" style="position: absolute;" id="ref"-->
   <main>
     <script src="draggable.js"></script>
@@ -19,20 +23,26 @@
 
     <div style="max-width: 20em; text-align: center;" id="controls">
       <h1>Weapon Builder</h1>
-      <fieldset style="font-size: 85%;">
-        <legend>Controls</legend>
-        <span>Space: Create new part</span><br>
-        <span>Hover: Select part</span><br>
-        <span>Click & drag: Move selected part</span><br>
-        <span>Shift + Click & drag: Rotate and slide</span><br>
-        <span>CTRL + Click: Lock selected part</span><br>
-        <span>Arrow Keys: Move selected part 1 unit</span><br>
-        <span>Shift + Arrow Keys: Increase part size</span><br>
-        <span>CTRL + Arrow Keys: Decrease part size</span><br>
-        <span>Scroll: Turn selected part</span><br>
-        <span>Backspace: Delete selected part</span><br>
-        <span>D: Duplicate selected part</span><br>
-      </fieldset>
+      <details open>
+        <summary>Controls</summary>
+        <fieldset style="font-size: 85%;">
+          <span>Space: Create new part</span><br>
+          <span>Hover: Select part</span><br>
+          <hr>
+          <span>Click & drag: Move selected part</span><br>
+          <span>Scroll: Turn selected part</span><br>
+          <span>Shift + Click & drag: Rotate and slide</span><br>
+          <hr>
+          <span>CTRL + Click: Lock selected part</span><br>
+          <hr>
+          <span>Arrow Keys: Move selected part 1 unit</span><br>
+          <span>Shift + Arrow Keys: Increase part size</span><br>
+          <span>CTRL + Arrow Keys: Decrease part size</span><br>
+          <hr>
+          <span>Backspace: Delete selected part</span><br>
+          <span>D: Duplicate selected part</span><br>
+        </fieldset>
+      </details>
       <fieldset>
         <legend>Options</legend>
         <label for="scale">Preview Scale</label><br>
@@ -42,6 +52,7 @@
         <legend>Tools</legend>
         <button type="button" onclick="delAll()">Clear All</button><br>
         <button type="button" onclick="toggleOriginInFront()">Toggle Origin Part On Top</button><br>
+        <hr>
         <label for="import-scale">Input Scale</label><br>
         <input type="number" min="0" value="1" id="import-scale"><br>
         <label for="json-input">Import from JSON</label><br>
@@ -56,7 +67,12 @@
       </fieldset>
       <fieldset>
         <legend>Info</legend>
-        <span>Parts: </span><span id="part-counter">0</span>
+        <span>Parts: </span><span id="part-counter">0</span><br>
+        <hr>
+        <label for="show-tt">Show Tooltip</label>
+        <input type="checkbox" onchange="toggleTooltip()" id="show-tt" checked><br>
+        <label for="show-ln">Show Outlines</label>
+        <input type="checkbox" onchange="toggleOutline()" id="show-ln">
       </fieldset>
     </div>
   </main>
