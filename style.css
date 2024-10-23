@@ -76,10 +76,38 @@ draggable-part[ghost=true][locked=true]{
   border-radius: 100%;
 }
 #tooltip[locked=true]{
-  border: 1px solid red;
   color: rgb(255, 206, 206);
   content: " " attr(desc) " [Locked]";
 }
+#tooltip[animation-mode=true]{
+  color: rgb(255, 206, 255);
+  content: " " attr(desc) " [Locked]";
+}
+
+#ani-details{
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
+  background-color: rgba(0, 0, 0, .75);
+  position: absolute;
+  bottom: 0;
+  pointer-events: none;
+  width: 100%;
+  min-height: fit-content;
+  z-index: 99;
+  border: 1px solid rgba(0, 0, 0, .04);
+  border-radius: 4px;
+  color: rgb(255, 206, 255);
+  font-size: 0.9em;
+  display: flex;
+}
+#ani-details *{
+  position: static;
+  text-align: center;
+  display: block;
+  flex-grow: 1;
+}
+
 #ref{
   background-image: url(moab-outline.png);
   background-repeat: no-repeat;

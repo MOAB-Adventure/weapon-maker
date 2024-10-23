@@ -199,3 +199,12 @@ function toggleOutline(){
     outline.removeAttribute("off")
   }
 }
+
+function toggleAniDetails(){
+  if(!document.getElementById("show-ani").checked){
+    aniDetails.setAttribute("off", "")
+  }
+  else{
+    aniDetails.removeAttribute("off")
+  }
+}

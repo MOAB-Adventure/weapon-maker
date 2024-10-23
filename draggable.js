@@ -1,11 +1,10 @@
 const grid = document.getElementById("grid");
 /** @type {HTMLDivElement} */
-let tooltip, outline
+let tooltip, outline, aniDetails
 document.addEventListener("DOMContentLoaded", () => {
   tooltip = document.getElementById("tooltip");
-})
-document.addEventListener("DOMContentLoaded", () => {
   outline = document.getElementById("outline");
+  aniDetails = document.getElementById("ani-details");
 })
 class DraggableElement extends HTMLElement {
   x = 0;
@@ -29,6 +28,22 @@ class DraggableElement extends HTMLElement {
   serialisable = true;
   circle = false;
   hidePos = false;
+
+  animationMode = false;
+  aniStart = null;
+  aniEnd = null;
+  aniPreview = null;
+  aniProgress = 0;
+  previewingAni = false;
+  animation = {
+    duration: 0,
+    delay: 0,
+    type: "recoil-animation"
+  }
+
+  animated = false
+  anis = []
+
   onmove = () => { };
   description = "Generic Part";
   anchor = {
@@ -247,8 +262,53 @@ class DraggableElement extends HTMLElement {
       this.style.borderColor = "black"
       this.updateStyles();
     }
+    if(event.altKey){
+      this.animated = true;
+      if(!this.animationMode){
+        this.animationMode = true
+        this.aniStart = {
+          x: this.x,
+          y: this.y,
+          rotation: this.rotation,
+          slide: this.slide,
+          width: this.width,
+          height: this.height
+        }
+        if(!this.aniEnd) this.aniEnd = structuredClone(this.aniStart)
+        Object.assign(this, this.aniEnd)
+      }
+      else{
+        this.animationMode = false
+        this.aniEnd = {
+          x: this.x,
+          y: this.y,
+          rotation: this.rotation,
+          slide: this.slide,
+          width: this.width,
+          height: this.height
+        }
+        Object.assign(this, this.aniStart)
+        this.handleDefiniteDragEnd()
+        this.handleDeselect()
+      }
+      return;
+    }
     if (this.draggable && !this.locked) this.handleDefiniteDragStart(event);
     this.focusSelection()
+  }
+  previewCurrentAnimation(){
+    if(!this.previewingAni){
+      this.previewingAni = true;
+      this.aniPreview = {
+        x: this.x * this.aniProgress,
+        y: this.y,
+        rotation: this.rotation,
+        slide: this.slide,
+        width: this.width,
+        height: this.height
+      }
+      Object.assign(this, this.aniPreview)
+    }
   }
   handleDefiniteDragStart(event) {
     this.dragging = true;
@@ -266,6 +326,7 @@ class DraggableElement extends HTMLElement {
       this.selected = false;
       tooltip.style.visibility = "hidden";
       outline.style.visibility = "hidden";
+      aniDetails.firstElementChild.innerText = "Select animated part"
       this.resetCursor()
       this.updateStyles();
     }
@@ -275,7 +336,7 @@ class DraggableElement extends HTMLElement {
     this.updateStyles();
   }
   get borderColour() {
-    return this.locked ? "red" : "cyan";
+    return this.locked ? "red" : this.animationMode ? "purple" : "cyan";
   }
   updateStyles() {
     if (this.style.borderLeftColor === "black")
@@ -318,6 +379,7 @@ class DraggableElement extends HTMLElement {
         tooltip.style.height = this.style.height
         tooltip.setAttribute("circle", this.circle)
         tooltip.setAttribute("locked", this.locked)
+        tooltip.setAttribute("animation-mode", this.animationMode)
       }
       if(outline?.style){
         outline.style.visibility = "visible";
@@ -327,6 +389,18 @@ class DraggableElement extends HTMLElement {
         outline.style.height = this.style.height
         outline.style.rotate = this.rotation + "deg";
         outline.setAttribute("circle", this.circle)
+      }
+      if(this.animated && aniDetails){
+        let aniProp = prop => ((this.animationMode?this[prop]:this.aniEnd[prop]) - this.aniStart[prop])
+        this.animationDetail = 
+          "Current Animation of "+this.description +
+          " | ΔX: "+aniProp("x")+" ΔY: "+aniProp("y")+
+          " | ΔRotation: "+aniProp("rotation")+
+          " ΔSlide: "+aniProp("slide")+
+          " | Duration: "+this.animation.duration+
+          " Delay: "+this.animation.delay+
+          " Type: "+this.animation.type.split("-").map(x => x.toUpperCase().at(0) + x.toLowerCase().substring(1)).join(" ")
+        aniDetails.firstElementChild.innerText = this.animationDetail
       }
     }
   }
