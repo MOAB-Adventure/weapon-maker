@@ -160,13 +160,13 @@ function importJSON() {
   if (!obj instanceof Array) return;
   for (let part of obj) {
     let created = makePart(
-      part.x / scl,
-      part.y / scl,
-      part.width / scl,
-      part.height / scl
+      (part.x??0) / scl,
+      (part.y??0) / scl,
+      (part.width??0) / scl,
+      (part.height??0) / scl
     );
-    created.rotation = part.rotation;
-    created.slide = part.slide / scl;
+    created.rotation = (part.rotation??0)
+    created.slide = (part.slide??0) / scl;
     created.updateStyles();
   }
   console.log(obj);
