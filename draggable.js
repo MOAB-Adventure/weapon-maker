@@ -23,6 +23,7 @@ class DraggableElement extends HTMLElement {
   resizable = true;
   deletable = true;
   rotatable = true;
+  otherProperties = Object.create(null);
   movable = true;
   locked = false;
   posCorrection = 0;

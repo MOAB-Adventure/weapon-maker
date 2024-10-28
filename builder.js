@@ -117,8 +117,8 @@ function serialiseToMAWeapon(parts) {
   let arr = [];
   let exportScale = document.getElementById("export-scale").value;
   for (let part of parts) {
-    if (part.serialisable)
-      arr.push({
+    if (part.serialisable){
+      arr.push(Object.assign({}, part.otherProperties, {
         type: "part",
         x: part.x * exportScale,
         y: part.y * exportScale,
@@ -127,7 +127,8 @@ function serialiseToMAWeapon(parts) {
         rotation: part.rotation,
         slide: part.slide * exportScale,
         image: false,
-      });
+      }));
+    }
   }
   return arr;
 }
@@ -145,12 +146,17 @@ function serialiseToMAWeaponTXT(parts) {
       height: ${part.height * exportScale},
       rotation: ${part.rotation},
       slide: ${part.slide * exportScale},
-      image: false
+      image: false,
+      ${objAsProperties(part.otherProperties)}
     },`
       );
   }
   arr.push("]");
   return arr;
+}
+function objAsProperties(obj){
+  let str = JSON.stringify(obj).replaceAll(/(?<=[ \n{}]\w*)(?<!: )"|"(?=[^":,]*:)/g, "")
+  return str.substring(1, str.length - 1).replaceAll(/(?<=[ \n{}]\w*)(?<!: )"|"(?=[^":,]*:)/g, "")
 }
 function importJSON() {
   let json = document.getElementById("json-input").value;
@@ -167,6 +173,17 @@ function importJSON() {
     );
     created.rotation = (part.rotation??0)
     created.slide = (part.slide??0) / scl;
+    for(let key of Object.keys(part)){
+      created.otherProperties[key] = part[key];
+    }
+    delete created.otherProperties.type
+    delete created.otherProperties.x
+    delete created.otherProperties.y
+    delete created.otherProperties.width
+    delete created.otherProperties.height
+    delete created.otherProperties.rotation
+    delete created.otherProperties.slide
+    delete created.otherProperties.image
     created.updateStyles();
   }
   console.log(obj);
