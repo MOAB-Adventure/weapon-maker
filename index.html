@@ -43,37 +43,46 @@
           <span>D: Duplicate selected part</span><br>
         </fieldset>
       </details>
-      <fieldset>
-        <legend>Options</legend>
-        <label for="scale">Preview Scale</label><br>
-        <input type="range" min="1.4" max="20" id="scale" step="0.1" onchange="visualScale()"><br>
-      </fieldset>
-      <fieldset>
-        <legend>Tools</legend>
-        <button type="button" onclick="delAll()">Clear All</button><br>
-        <button type="button" onclick="toggleOriginInFront()">Toggle Origin Part On Top</button><br>
-        <hr>
-        <label for="import-scale">Input Scale</label><br>
-        <input type="number" min="0" value="1" id="import-scale"><br>
-        <label for="json-input">Import from JSON</label><br>
-        <input type="text" placeholder="Enter JSON here..." id="json-input"><button type="button" onclick="importJSON()">Import</button><br>
-      </fieldset>
-      <fieldset>
-        <legend>Serialisation</legend>
-        <label for="export-scale">Output Scale</label><br>
-        <input type="number" min="0" value="1" id="export-scale" onchange="updatePreviewBlimp()"><br>
-        <button type="button" onclick="exportMAWeapon()">Export as Array</button>
-        <button type="button" onclick="exportMAWeaponJSON()">Export as JSON</button>
-      </fieldset>
-      <fieldset>
-        <legend>Info</legend>
-        <span>Parts: </span><span id="part-counter">0</span><br>
-        <hr>
-        <label for="show-tt">Show Tooltip</label>
-        <input type="checkbox" onchange="toggleTooltip()" id="show-tt" checked><br>
-        <label for="show-ln">Show Outlines</label>
-        <input type="checkbox" onchange="toggleOutline()" id="show-ln">
-      </fieldset>
+      <details open>
+        <summary>Options</summary>
+        <fieldset>
+          <label for="scale">Preview Scale</label><br>
+          <input type="range" min="1.4" max="20" id="scale" step="0.1" onchange="visualScale()"><br>
+        </fieldset>
+      </details>
+      <details open>
+        <summary>Tools</summary>
+        <fieldset>
+          <button type="button" onclick="delAll()">Clear All</button><br>
+          <button type="button" onclick="toggleOriginInFront()">Toggle Origin Part On Top</button><br>
+        </fieldset>
+      </details>
+      <details open>
+        <summary>Serialisation</summary>
+        <fieldset>
+          <label for="import-scale">Input Scale</label><br>
+          <input type="number" min="0" value="1" id="import-scale"><br>
+          <label for="json-input">Import from JSON</label><br>
+          <input type="text" placeholder="Enter JSON here..." id="json-input"><button type="button"
+            onclick="importJSON()">Import</button><br>
+          <hr>
+          <label for="export-scale">Output Scale</label><br>
+          <input type="number" min="0" value="1" id="export-scale" onchange="updatePreviewBlimp()"><br>
+          <button type="button" onclick="exportMAWeapon()">Export as Array</button>
+          <button type="button" onclick="exportMAWeaponJSON()">Export as JSON</button>
+        </fieldset>
+      </details>
+      <details open>
+        <summary>Info</summary>
+        <fieldset>
+          <span>Parts: </span><span id="part-counter">0</span><br>
+          <hr>
+          <label for="show-tt">Show Tooltip</label>
+          <input type="checkbox" onchange="toggleTooltip()" id="show-tt" checked><br>
+          <label for="show-ln">Show Outlines</label>
+          <input type="checkbox" onchange="toggleOutline()" id="show-ln">
+        </fieldset>
+      </details>
     </div>
   </main>
 </body>
