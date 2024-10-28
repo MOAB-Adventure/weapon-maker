@@ -306,7 +306,7 @@ class DraggableElement extends HTMLElement {
       this.y +
       "]":"") +
       (this.rotatable ? "\nRotation:" + this.rotation : "") + 
-      (this.slide ? "\nSlide:"+this.slide : "") + (this.locked?"\n[Locked]":"")
+      (this.slide ? "\nSlide:"+this.slide : "") + (this.locked?"\n[Locked]":"") + ((this.otherProperties.recoilAnimations||this.otherProperties.chargeAnimations||this.otherProperties.passiveAnimations)?"\n{Animated}":"")
     this.setAttribute("rot", this.rotation);
     if (!this.selected) this.style.borderColor = "black";
     if(this.selected){
