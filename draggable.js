@@ -73,6 +73,11 @@ class DraggableElement extends HTMLElement {
   }
   createDuplicate(){
     const duplicate = document.createElement("draggable-part");
+    try{
+      duplicate.otherProperties = structuredClone(this.otherProperties)
+    }catch(error){
+      console.warn("Could not copy all properties:",error)
+    }
     duplicate.x = this.x;
     duplicate.y = this.y;
     duplicate.width = this.width;
