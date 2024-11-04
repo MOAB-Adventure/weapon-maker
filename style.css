@@ -81,11 +81,15 @@ draggable-part[ghost=true][locked=true]{
   content: " " attr(desc) " [Locked]";
 }
 #ref{
+  filter: none;
   background-image: url(moab-outline.png);
   background-repeat: no-repeat;
   background-size: cover;
   border: none;
   opacity: 0.1;
+}
+#ref[colour]{
+  background-image: url(moab.png);
 }
 .grid {
   display: block;

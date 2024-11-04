@@ -23,7 +23,7 @@
 
     <div style="max-width: 20em; text-align: center;" id="controls">
       <h1>Weapon Builder</h1>
-      <details open>
+      <details open id="normal-controls">
         <summary>Controls</summary>
         <fieldset style="font-size: 85%;">
           <span>Space: Create new part</span><br>
@@ -41,6 +41,19 @@
           <hr>
           <span>Backspace: Delete selected part</span><br>
           <span>D: Duplicate selected part</span><br>
+          <hr>
+          <span>S: Enable Paint Mode</span><br>
+        </fieldset>
+      </details>
+      <details open id="painter-controls" style="visibility: hidden; height: 0;">
+        <summary>Paint Mode Controls</summary>
+        <fieldset style="font-size: 85%;">
+          <span>Hover: Select part</span><br>
+          <span>Click: Paint part</span><br>
+          <span>Shift + Click: Unpaint part</span>
+          <hr>
+          <span>S: Disable Paint Mode</span><br>
+          Select Colour: <input type="color" id="painter-colour" aria-label="Painter Colour" value="#c8c8c8">
         </fieldset>
       </details>
       <details open>
@@ -63,7 +76,7 @@
           <label for="import-scale">Input Scale</label><br>
           <input type="number" min="0" value="1" id="import-scale"><br>
           <label for="json-input">Import from JSON</label><br>
-          <input type="text" placeholder="Enter JSON here..." id="json-input"><button type="button"
+          <input type="text" placeholder="Enter JSON here..." id="json-input" autocomplete="off"><button type="button"
             onclick="importJSON()">Import</button><br>
           <hr>
           <label for="export-scale">Output Scale</label><br>
