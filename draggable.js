@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   outline = document.getElementById("outline");
   aniDetails = document.getElementById("ani-details");
 })
+let painting = false;
 class DraggableElement extends HTMLElement {
   x = 0;
   y = 0;
@@ -22,6 +23,7 @@ class DraggableElement extends HTMLElement {
   resizable = true;
   deletable = true;
   rotatable = true;
+  otherProperties = Object.create(null);
   movable = true;
   locked = false;
   posCorrection = 0;
@@ -44,6 +46,8 @@ class DraggableElement extends HTMLElement {
   animated = false
   anis = []
 
+  colour = [200, 200, 200];
+  coloured = true;
   onmove = () => { };
   description = "Generic Part";
   anchor = {
@@ -87,6 +91,11 @@ class DraggableElement extends HTMLElement {
   }
   createDuplicate(){
     const duplicate = document.createElement("draggable-part");
+    try{
+      duplicate.otherProperties = structuredClone(this.otherProperties)
+    }catch(error){
+      console.warn("Could not copy all properties:",error)
+    }
     duplicate.x = this.x;
     duplicate.y = this.y;
     duplicate.width = this.width;
@@ -101,6 +110,7 @@ class DraggableElement extends HTMLElement {
   handleKeyPress(event) {
     if (!this.selected) return;
     if (this.locked) return;
+    if(painting) return;
     if (event.key === "d" && this.deletable) {
       const duplicate = this.createDuplicate()
       document.body.appendChild(duplicate);
@@ -242,10 +252,15 @@ class DraggableElement extends HTMLElement {
     this.onmove(event);
   }
   resetCursor() {
-    if (this.locked) {
-      this.style.cursor = "not-allowed";
+    if(painting && this.coloured){
+      this.style.cursor = "url(pen.cur) 0 0, pointer"
     }
-    else this.style.cursor = "grab"
+    else{
+      if (this.locked) {
+        this.style.cursor = "not-allowed";
+      }
+      else this.style.cursor = "grab"
+    }
   }
   focusSelection(){
     if(parts){
@@ -255,6 +270,16 @@ class DraggableElement extends HTMLElement {
     }
   }
   handlePossibleDragStart(event) {
+    if(painting && !this.locked){
+      if(event.shiftKey){
+        this.colour = [200, 200, 200]
+      }
+      else{
+        this.colour = getColourArrayFromHex(document.getElementById("painter-colour").value)
+      }
+      this.updateStyles()
+      return;
+    }
     if (event.ctrlKey) {
       this.locked = !this.locked;
       this.setAttribute("locked", this.locked)
@@ -317,8 +342,9 @@ class DraggableElement extends HTMLElement {
   }
   handleDefiniteDragEnd(event) {
     this.dragging = false;
-    this.confirmSlide()
-    this.resetCursor()
+    this.handleDeselect();
+    this.confirmSlide();
+    this.resetCursor();
     this.updateStyles();
   }
   handleDeselect(event) {
@@ -357,6 +383,11 @@ class DraggableElement extends HTMLElement {
     this.style.left = (absX + relX) + "px";
     this.style.top = (absY + relY) + "px"
     this.style.rotate = this.rotation + "deg";
+    if(this.coloured) {
+      this.style.backgroundColor = `rgb(${this.colour[0]},${this.colour[1]},${this.colour[2]})`;
+      this.style.backgroundImage = "none"
+      this.style.filter = "none"
+    }
     this.tooltip = 
       this.description +
       (this.resizable ? "\n(" + this.width + "x" + this.height + ")" : "") +
@@ -366,11 +397,11 @@ class DraggableElement extends HTMLElement {
       this.y +
       "]":"") +
       (this.rotatable ? "\nRotation:" + this.rotation : "") + 
-      (this.slide ? "\nSlide:"+this.slide : "") + (this.locked?"\n[Locked]":"")
+      (this.slide ? "\nSlide:"+this.slide : "") + (this.locked?"\n[Locked]":"") + ((this.otherProperties.recoilAnimations||this.otherProperties.chargeAnimations||this.otherProperties.passiveAnimations)?"\n{Animated}":"")
     this.setAttribute("rot", this.rotation);
     if (!this.selected) this.style.borderColor = "black";
     if(this.selected){
-      if(tooltip?.style){
+      if(!painting && tooltip?.style){
         tooltip.firstElementChild.innerText = this.tooltip
         tooltip.style.visibility = "visible";
         tooltip.style.left = this.style.left
@@ -413,4 +444,10 @@ function radians(deg){
 }
 function degrees(rad){
   return rad / Math.PI * 180
+}
+
+function getColourArrayFromHex(hex = "#000000"){
+  hex = hex.substring(1);
+  let r = hex.substring(0,2), g = hex.substring(2,4), b = hex.substring(4,6)
+  return [r, g, b].map(x => parseInt(x, 16))
 }
