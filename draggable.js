@@ -1,13 +1,14 @@
 const grid = document.getElementById("grid");
 /** @type {HTMLDivElement} */
-let tooltip, outline, aniDetails
+let tooltip, outline, aniDetails;
 document.addEventListener("DOMContentLoaded", () => {
   tooltip = document.getElementById("tooltip");
   outline = document.getElementById("outline");
   aniDetails = document.getElementById("ani-details");
-})
+});
 let painting = false;
 class DraggableElement extends HTMLElement {
+  ptype = "part";
   x = 0;
   y = 0;
   px = 0;
@@ -18,13 +19,19 @@ class DraggableElement extends HTMLElement {
   height = 20;
   dragging = false;
   sliding = false;
+  /** Can this part be moved? */
   draggable = true;
   selected = false;
+  /** Can this part be resized? */
   resizable = true;
+  /** Can this part be deleted or cloned? */
   deletable = true;
+  /** Can this part be turned? */
   rotatable = true;
   otherProperties = Object.create(null);
+  /** Can this part be moved (or resized)? */
   movable = true;
+  /** Can this part be interacted with at all? */
   locked = false;
   posCorrection = 0;
   serialisable = true;
@@ -40,15 +47,19 @@ class DraggableElement extends HTMLElement {
   animation = {
     duration: 0,
     delay: 0,
-    type: "recoil-animation"
-  }
+    type: "recoil-animation",
+    x: 0,
+    y: 0,
+    slide: 0,
+    rotation: 0,
+  };
 
-  animated = false
-  anis = []
+  animated = false;
+  anis = [];
 
   colour = [200, 200, 200];
   coloured = true;
-  onmove = () => { };
+  onmove = () => {};
   description = "Generic Part";
   anchor = {
     x: 0,
@@ -70,12 +81,10 @@ class DraggableElement extends HTMLElement {
     this.addEventListener("mouseleave", this.handleDeselect);
     this.addEventListener("contextmenu", this.handleDefiniteDragEnd);
 
-    document.addEventListener("mousemove", (event) =>
-      this.handleMovement(event)
-    );
+    document.addEventListener("mousemove", (event) => this.handleMovement(event));
     document.addEventListener("keydown", (event) => this.handleKeyPress(event));
 
-    this.resetCursor()
+    this.resetCursor();
     this.style.display = "inline-block";
     this.style.position = "absolute";
     this.style.borderWidth = "1px";
@@ -89,12 +98,13 @@ class DraggableElement extends HTMLElement {
       this.updateStyles();
     }
   }
-  createDuplicate(){
+  createDuplicate() {
+    /**@type {DraggableElement} */
     const duplicate = document.createElement("draggable-part");
-    try{
-      duplicate.otherProperties = structuredClone(this.otherProperties)
-    }catch(error){
-      console.warn("Could not copy all properties:",error)
+    try {
+      duplicate.otherProperties = structuredClone(this.otherProperties);
+    } catch (error) {
+      console.warn("Could not copy all properties:", error);
     }
     duplicate.x = this.x;
     duplicate.y = this.y;
@@ -104,15 +114,23 @@ class DraggableElement extends HTMLElement {
     duplicate.slide = this.slide;
     duplicate.coordinateScale = this.coordinateScale;
     duplicate.anchor = this.anchor;
+    duplicate.description = this.description;
+    if (this.animated) {
+      duplicate.animated = true;
+      duplicate.animation = structuredClone(this.animation);
+      duplicate.aniStart = structuredClone(this.aniStart);
+      duplicate.aniEnd = structuredClone(this.aniEnd);
+      duplicate.anis = structuredClone(this.anis);
+    }
     duplicate.updateStyles();
-    return duplicate
+    return duplicate;
   }
   handleKeyPress(event) {
     if (!this.selected) return;
     if (this.locked) return;
-    if(painting) return;
+    if (painting) return;
     if (event.key === "d" && this.deletable) {
-      const duplicate = this.createDuplicate()
+      const duplicate = this.createDuplicate();
       document.body.appendChild(duplicate);
       parts.push(duplicate);
       updateInfo();
@@ -126,7 +144,7 @@ class DraggableElement extends HTMLElement {
       updateInfo();
       return;
     }
-    if(this.movable){
+    if (this.movable) {
       if (event.key === "ArrowUp") {
         if (this.resizable && event.shiftKey) {
           this.height += 1;
@@ -183,146 +201,157 @@ class DraggableElement extends HTMLElement {
     this.updateStyles();
     this.onmove(event);
   }
-  confirmSlide(){
-    this.px = this.x
-    this.py = this.y
-    this.sliding = false
-    if(this.ghost) this.killGhost()
+  confirmSlide() {
+    this.px = this.x;
+    this.py = this.y;
+    this.sliding = false;
+    if (this.ghost) this.killGhost();
   }
-  createGhost(){
-    this.ghost = this.createDuplicate()
+  createGhost() {
+    this.ghost = this.createDuplicate();
     this.ghost.slide = 0;
-    this.ghost.description = "Ghost"
-    this.ghost.serialisable = false
-    this.ghost.locked = true
-    document.body.appendChild(this.ghost)
-    this.ghost.updateStyles()
-    this.ghost.setAttribute("ghost", true)
+    this.ghost.description = "Ghost";
+    this.ghost.serialisable = false;
+    this.ghost.locked = true;
+    this.ghost.coloured = false;
+    document.body.appendChild(this.ghost);
+    this.ghost.updateStyles();
+    this.ghost.setAttribute("ghost", true);
   }
-  updateGhost(){
-    this.ghost.x = this.x
-    this.ghost.y = this.y
-    this.ghost.rotation = this.rotation
-    this.ghost.updateStyles()
+  updateGhost() {
+    this.ghost.x = this.x;
+    this.ghost.y = this.y;
+    this.ghost.rotation = this.rotation;
+    this.ghost.updateStyles();
   }
-  killGhost(){
-    this.ghost.remove()
-    delete this.ghost
+  killGhost() {
+    this.ghost.remove();
+    delete this.ghost;
   }
   handleMovement(event) {
     if (!this.dragging || this.locked || !this.movable) return;
     if (event.shiftKey) {
-      this.sliding = true
-      if(!this.ghost) this.createGhost()
-      this.updateGhost()
-      let nx = (event.x -
-        this.anchor.x * this.anchor.coordinateScale -
-        this.posCorrection * this.coordinateScale) /
-        this.coordinateScale
-      let ny = (event.y -
-        this.anchor.y * this.anchor.coordinateScale -
-        this.posCorrection * this.coordinateScale) /
-        this.coordinateScale
-      let dx = nx - this.px
-      let dy = ny - this.py
-      let angle = Math.atan2(dy, dx)
-      let deg = Math.round(degrees(angle))
-      this.slide = Math.round(Math.sqrt(dx**2 + dy**2));
-      if(this.rotatable && !isNaN(+deg)) this.rotation = deg
-      this.updateStyles()
+      this.sliding = true;
+      if (!this.ghost) this.createGhost();
+      this.updateGhost();
+      let nx =
+        (event.x -
+          this.anchor.x * this.anchor.coordinateScale -
+          this.posCorrection * this.coordinateScale) /
+        this.coordinateScale;
+      let ny =
+        (event.y -
+          this.anchor.y * this.anchor.coordinateScale -
+          this.posCorrection * this.coordinateScale) /
+        this.coordinateScale;
+      let dx = nx - this.px;
+      let dy = ny - this.py;
+      let angle = Math.atan2(dy, dx);
+      let deg = Math.round(degrees(angle));
+      this.slide = Math.round(Math.sqrt(dx ** 2 + dy ** 2));
+      if (this.rotatable && !isNaN(+deg)) this.rotation = deg;
+      this.updateStyles();
       return;
     }
-    if(this.slide){
-      if(!this.ghost) this.createGhost()
-      this.updateGhost()
+    if (this.slide) {
+      if (!this.ghost) this.createGhost();
+      this.updateGhost();
     }
     this.x = Math.round(
       (event.x -
         this.anchor.x * this.anchor.coordinateScale -
         this.posCorrection * this.coordinateScale) /
-      this.coordinateScale
+        this.coordinateScale
     );
     this.y = Math.round(
       (event.y -
         this.anchor.y * this.anchor.coordinateScale -
         this.posCorrection * this.coordinateScale) /
-      this.coordinateScale
+        this.coordinateScale
     );
     this.updateStyles();
     this.onmove(event);
   }
   resetCursor() {
-    if(painting && this.coloured){
-      this.style.cursor = "url(pen.cur) 0 0, pointer"
-    }
-    else{
+    if (painting && this.coloured) {
+      this.style.cursor = "url(pen.cur) 0 0, pointer";
+    } else {
       if (this.locked) {
         this.style.cursor = "not-allowed";
-      }
-      else this.style.cursor = "grab"
+      } else this.style.cursor = "grab";
     }
   }
-  focusSelection(){
-    if(parts){
-      for(let p of parts){
-        if(p !== this) p.handleDefiniteDragEnd()
+  focusSelection() {
+    if (parts) {
+      for (let p of parts) {
+        if (p !== this) p.handleDefiniteDragEnd();
       }
     }
   }
   handlePossibleDragStart(event) {
-    if(painting && !this.locked){
-      if(event.shiftKey){
-        this.colour = [200, 200, 200]
+    if (this.aniProgress) {
+      document.getElementById("ani-progress").value = 0;
+      updateAniProgress();
+    }
+    if (painting && !this.locked) {
+      if (event.shiftKey) {
+        this.colour = [200, 200, 200];
+      } else {
+        this.colour = getColourArrayFromHex(document.getElementById("painter-colour").value);
       }
-      else{
-        this.colour = getColourArrayFromHex(document.getElementById("painter-colour").value)
-      }
-      this.updateStyles()
+      this.updateStyles();
       return;
     }
     if (event.ctrlKey) {
       this.locked = !this.locked;
-      this.setAttribute("locked", this.locked)
+      this.setAttribute("locked", this.locked);
       this.resetCursor();
-      this.style.borderColor = "black"
+      this.style.borderColor = "black";
       this.updateStyles();
     }
-    if(event.altKey){
+    if (event.altKey) {
       this.animated = true;
-      if(!this.animationMode){
-        this.animationMode = true
+      this.ptype = "weapon-part";
+      this.description = "Animated Part";
+      if (!this.animationMode) {
+        this.animationMode = true;
         this.aniStart = {
           x: this.x,
           y: this.y,
           rotation: this.rotation,
           slide: this.slide,
           width: this.width,
-          height: this.height
-        }
-        if(!this.aniEnd) this.aniEnd = structuredClone(this.aniStart)
-        Object.assign(this, this.aniEnd)
-      }
-      else{
-        this.animationMode = false
+          height: this.height,
+        };
+        if (!this.aniEnd) this.aniEnd = structuredClone(this.aniStart);
+        Object.assign(this, this.aniEnd);
+      } else {
+        this.animationMode = false;
         this.aniEnd = {
           x: this.x,
           y: this.y,
           rotation: this.rotation,
           slide: this.slide,
           width: this.width,
-          height: this.height
-        }
-        Object.assign(this, this.aniStart)
-        this.handleDefiniteDragEnd()
-        this.handleDeselect()
+          height: this.height,
+        };
+        Object.assign(this.animation, {
+          x: this.x - this.aniStart.x,
+          y: this.y - this.aniStart.y,
+          rotation: this.rotation - this.aniStart.rotation,
+          slide: this.slide - this.aniStart.slide,
+        });
+        Object.assign(this, this.aniStart);
+        this.handleDefiniteDragEnd();
+        this.handleDeselect();
       }
       return;
     }
     if (this.draggable && !this.locked) this.handleDefiniteDragStart(event);
-    this.focusSelection()
+    this.focusSelection();
   }
-  previewCurrentAnimation(){
-    if(!this.previewingAni){
+  previewCurrentAnimation() {
+    if (!this.previewingAni) {
       this.previewingAni = true;
       this.aniPreview = {
         x: this.x * this.aniProgress,
@@ -330,9 +359,9 @@ class DraggableElement extends HTMLElement {
         rotation: this.rotation,
         slide: this.slide,
         width: this.width,
-        height: this.height
-      }
-      Object.assign(this, this.aniPreview)
+        height: this.height,
+      };
+      Object.assign(this, this.aniPreview);
     }
   }
   handleDefiniteDragStart(event) {
@@ -352,8 +381,8 @@ class DraggableElement extends HTMLElement {
       this.selected = false;
       tooltip.style.visibility = "hidden";
       outline.style.visibility = "hidden";
-      aniDetails.firstElementChild.innerText = "Select animated part"
-      this.resetCursor()
+      aniDetails.firstElementChild.innerText = "Select animated part";
+      this.resetCursor();
       this.updateStyles();
     }
   }
@@ -365,73 +394,114 @@ class DraggableElement extends HTMLElement {
     return this.locked ? "red" : this.animationMode ? "purple" : "cyan";
   }
   updateStyles() {
-    if (this.style.borderLeftColor === "black")
-      this.style.borderLeftColor = this.borderColour;
-    if (this.style.borderRightColor === "black")
-      this.style.borderRightColor = this.borderColour;
-    if (this.style.borderTopColor === "black")
-      this.style.borderTopColor = this.borderColour;
-    if (this.style.borderBottomColor === "black")
-      this.style.borderBottomColor = this.borderColour;
+    if (this.style.borderLeftColor === "black") this.style.borderLeftColor = this.borderColour;
+    if (this.style.borderRightColor === "black") this.style.borderRightColor = this.borderColour;
+    if (this.style.borderTopColor === "black") this.style.borderTopColor = this.borderColour;
+    if (this.style.borderBottomColor === "black") this.style.borderBottomColor = this.borderColour;
     // this.style.backgroundColor = this.selected?"#dfdfdf":"#ffffff"
     this.style.width = this.width * this.coordinateScale + "px";
     this.style.height = this.height * this.coordinateScale + "px";
-    let absX = (this.x - this.width / 2 + this.anchor.x + this.posCorrection) * this.coordinateScale
-    let absY = (this.y - this.height / 2 + this.anchor.y + this.posCorrection) * this.coordinateScale
-    let relX = (this.slide * Math.cos(radians(this.rotation)) * this.coordinateScale)
-    let relY = (this.slide * Math.sin(radians(this.rotation)) * this.coordinateScale)
-    this.style.left = (absX + relX) + "px";
-    this.style.top = (absY + relY) + "px"
-    this.style.rotate = this.rotation + "deg";
-    if(this.coloured) {
+    let absX =
+      (this.x -
+        this.width / 2 +
+        this.animation.x * this.aniProgress +
+        this.anchor.x +
+        this.posCorrection) *
+      this.coordinateScale;
+    let absY =
+      (this.y -
+        this.height / 2 +
+        this.animation.y * this.aniProgress +
+        this.anchor.y +
+        this.posCorrection) *
+      this.coordinateScale;
+    let relX =
+      (this.slide + this.animation.slide * this.aniProgress) *
+      Math.cos(radians(this.rotation + this.animation.rotation * this.aniProgress)) *
+      this.coordinateScale;
+    let relY =
+      (this.slide + this.animation.slide * this.aniProgress) *
+      Math.sin(radians(this.rotation + this.animation.rotation * this.aniProgress)) *
+      this.coordinateScale;
+    this.style.left = absX + relX + "px";
+    this.style.top = absY + relY + "px";
+    this.style.rotate = this.rotation + this.animation.rotation * this.aniProgress + "deg";
+    if (this.coloured) {
       this.style.backgroundColor = `rgb(${this.colour[0]},${this.colour[1]},${this.colour[2]})`;
-      this.style.backgroundImage = "none"
-      this.style.filter = "none"
+      this.style.backgroundImage = "none";
+      this.style.filter = "none";
     }
-    this.tooltip = 
+    this.tooltip =
       this.description +
       (this.resizable ? "\n(" + this.width + "x" + this.height + ")" : "") +
-      (this.movable && !this.hidePos?"\n[X:" +
-      this.x +
-      ",Y:" +
-      this.y +
-      "]":"") +
-      (this.rotatable ? "\nRotation:" + this.rotation : "") + 
-      (this.slide ? "\nSlide:"+this.slide : "") + (this.locked?"\n[Locked]":"") + ((this.otherProperties.recoilAnimations||this.otherProperties.chargeAnimations||this.otherProperties.passiveAnimations)?"\n{Animated}":"")
+      (this.movable && !this.hidePos
+        ? "\n[X:" +
+          this.x +
+          (this.animated
+            ? "<span class='ani'>+" + this.animation.x * this.aniProgress + "</span>;"
+            : "") +
+          ",Y:" +
+          this.y +
+          (this.animated
+            ? "<span class='ani'>+" + this.animation.y * this.aniProgress + "</span>;"
+            : "") +
+          "]"
+        : "") +
+      (this.rotatable ? "\nRotation:" + this.rotation : "") +
+      (this.slide ? "\nSlide:" + this.slide : "") +
+      (this.locked ? "\n[Locked]" : "") +
+      (this.otherProperties.recoilAnimations ||
+      this.otherProperties.chargeAnimations ||
+      this.otherProperties.passiveAnimations
+        ? "\n{Animated}"
+        : "");
     this.setAttribute("rot", this.rotation);
     if (!this.selected) this.style.borderColor = "black";
-    if(this.selected){
-      if(!painting && tooltip?.style){
-        tooltip.firstElementChild.innerText = this.tooltip
+    if (this.selected) {
+      if (!painting && tooltip?.style) {
+        tooltip.firstElementChild.innerHTML = this.tooltip.replaceAll("\n", "<br>");
         tooltip.style.visibility = "visible";
-        tooltip.style.left = this.style.left
-        tooltip.style.top = this.style.top
-        tooltip.style.width = this.style.width
-        tooltip.style.height = this.style.height
-        tooltip.setAttribute("circle", this.circle)
-        tooltip.setAttribute("locked", this.locked)
-        tooltip.setAttribute("animation-mode", this.animationMode)
+        tooltip.style.left = this.style.left;
+        tooltip.style.top = this.style.top;
+        tooltip.style.width = this.style.width;
+        tooltip.style.height = this.style.height;
+        tooltip.setAttribute("circle", this.circle);
+        tooltip.setAttribute("locked", this.locked);
+        tooltip.setAttribute("animation-mode", this.animationMode);
       }
-      if(outline?.style){
+      if (outline?.style) {
         outline.style.visibility = "visible";
-        outline.style.left = this.style.left
-        outline.style.top = this.style.top
-        outline.style.width = this.style.width
-        outline.style.height = this.style.height
+        outline.style.left = this.style.left;
+        outline.style.top = this.style.top;
+        outline.style.width = this.style.width;
+        outline.style.height = this.style.height;
         outline.style.rotate = this.rotation + "deg";
-        outline.setAttribute("circle", this.circle)
+        outline.setAttribute("circle", this.circle);
       }
-      if(this.animated && aniDetails){
-        let aniProp = prop => ((this.animationMode?this[prop]:this.aniEnd[prop]) - this.aniStart[prop])
-        this.animationDetail = 
-          "Current Animation of "+this.description +
-          " | ΔX: "+aniProp("x")+" ΔY: "+aniProp("y")+
-          " | ΔRotation: "+aniProp("rotation")+
-          " ΔSlide: "+aniProp("slide")+
-          " | Duration: "+this.animation.duration+
-          " Delay: "+this.animation.delay+
-          " Type: "+this.animation.type.split("-").map(x => x.toUpperCase().at(0) + x.toLowerCase().substring(1)).join(" ")
-        aniDetails.firstElementChild.innerText = this.animationDetail
+      if (this.animated && aniDetails) {
+        let aniProp = (prop) =>
+          (this.animationMode ? this[prop] : this.aniEnd[prop]) - this.aniStart[prop];
+        this.animationDetail =
+          "Current Animation of " +
+          this.description +
+          " | ΔX: " +
+          aniProp("x") +
+          " ΔY: " +
+          aniProp("y") +
+          " | ΔRotation: " +
+          aniProp("rotation") +
+          " ΔSlide: " +
+          aniProp("slide") +
+          " | Duration: " +
+          this.animation.duration +
+          " Delay: " +
+          this.animation.delay +
+          " Type: " +
+          this.animation.type
+            .split("-")
+            .map((x) => x.toUpperCase().at(0) + x.toLowerCase().substring(1))
+            .join(" ");
+        aniDetails.firstElementChild.innerText = this.animationDetail;
       }
     }
   }
@@ -439,15 +509,17 @@ class DraggableElement extends HTMLElement {
 
 customElements.define("draggable-part", DraggableElement);
 
-function radians(deg){
-  return deg / 180 * Math.PI
+function radians(deg) {
+  return (deg / 180) * Math.PI;
 }
-function degrees(rad){
-  return rad / Math.PI * 180
+function degrees(rad) {
+  return (rad / Math.PI) * 180;
 }
 
-function getColourArrayFromHex(hex = "#000000"){
+function getColourArrayFromHex(hex = "#000000") {
   hex = hex.substring(1);
-  let r = hex.substring(0,2), g = hex.substring(2,4), b = hex.substring(4,6)
-  return [r, g, b].map(x => parseInt(x, 16))
+  let r = hex.substring(0, 2),
+    g = hex.substring(2, 4),
+    b = hex.substring(4, 6);
+  return [r, g, b].map((x) => parseInt(x, 16));
 }

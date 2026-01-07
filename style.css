@@ -72,18 +72,22 @@ draggable-part[ghost=true][locked=true]{
   display: block;
   flex-grow: 1;
 }
+#tooltip * *{
+  display: inline;
+  white-space: nowrap;
+}
 #tooltip[circle=true], #outline[circle=true]{
   border-radius: 100%;
 }
 #tooltip[locked=true]{
   color: rgb(255, 206, 206);
-  content: " " attr(desc) " [Locked]";
 }
 #tooltip[animation-mode=true]{
   color: rgb(255, 206, 255);
-  content: " " attr(desc) " [Locked]";
 }
-
+.ani{
+  color: rgb(255, 206, 255);
+}
 #ani-details{
   flex-direction: row;
   align-items: center;

@@ -204,6 +204,9 @@ function importJSON() {
     delete created.otherProperties.slide;
     delete created.otherProperties.image;
     delete created.otherProperties.colour;
+    if(created.otherProperties.recoilAnimation){
+      created.animation = created.otherProperties.recoilAnimation;
+    }
     created.updateStyles();
   }
   console.log(obj);
@@ -278,5 +281,12 @@ function toggleAniDetails(){
   }
   else{
     aniDetails.removeAttribute("off")
+  }
+}
+function updateAniProgress(){
+  let prog = document.getElementById("ani-progress").value
+  for(let part of parts){
+    part.aniProgress = prog
+    part.updateStyles()
   }
 }
